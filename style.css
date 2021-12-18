@@ -23,6 +23,11 @@
   width: 50%;
 }
 
+.token-select {
+  display: flex;
+  align-items: center;
+}
+
 .token-select:hover {
   background-color: #3f3f3f;
   cursor: pointer;
@@ -45,4 +50,11 @@
   width: 40px;
   height: 40px;
   margin-right: 1rem;
+}
+
+#from-token-image,
+#to-token-image {
+  with: 30px;
+  height: 30px;
+  margin-right: 0.5rem;
 }
