@@ -10,15 +10,22 @@ let tokens;
 const activeChain = "eth";
 
 async function login() {
-  console.log("[Login]?");
   try {
     currentUser = Moralis.User.current();
     if (!currentUser) {
       currentUser = await Moralis.Web3.authenticate();
     }
+    console.log(currentUser.get("ethAddress"))
+    renderLoginSection(true);
   } catch (e) {
     console.log(error);
   }
+}
+
+async function logout() {
+  Moralis.User.logOut().then(() => {
+    renderLoginSection(false);
+  });
 }
 
 async function init() {
@@ -71,7 +78,7 @@ async function getQuote() {
     currentTrade.from.address === currentTrade.to.address
   )
     return;
-  const fromAmount = Number(Moralis.Units.ETH(fromInputValue));
+  const fromAmount = (Moralis.Units.ETH(fromInputValue));
 
   const quote = await Moralis.Plugins.oneInch.quote({
     chain: activeChain, // The blockchain you want to use (eth/bsc/polygon)
@@ -85,6 +92,43 @@ async function getQuote() {
     return;
   }
   $("#to_amount").val(quote.toTokenAmount / 10 ** quote.toToken.decimals);
+  $("#gas-estimate").text(quote.estimatedGas);
+}
+
+async function trySwap() {
+  let address = Moralis.User.current().get("ethAddress");
+  const fromInputValue = $("#from_amount").val();
+  const fromAmount = Moralis.Units.ETH(fromInputValue); //console.log()
+
+  if (currentTrade.from.symbol !== "ETH") {
+    // check allowance.
+    // get allowance.
+    const allowance = await Moralis.Plugins.oneInch.hasAllowance({
+      chain: activeChain,
+      fromTokenAddress: currentTrade.from.address,
+      fromAddress: address,
+      amount: fromAmount,
+    });
+
+    if (!allowance) {
+      await Moralis.Plugins.oneInch.approve({
+        chain: activeChain,
+        tokenAddress: currentTrade.from.address,
+        fromAddress: address,
+      });
+    }
+  }
+
+  const receipt = await Moralis.Plugins.oneInch.swap({
+    chain: activeChain,
+    fromTokenAddress: currentTrade.from.address,
+    toTokenAddress: currentTrade.to.address,
+    amount: fromAmount,
+    fromAddress: address,
+    slippage: 1,
+  });
+
+  // Trade
 }
 
 function renderInterface() {
@@ -92,6 +136,12 @@ function renderInterface() {
   $("#from-token-symbol").text(currentTrade["from"].symbol);
   $("#to-token-image").attr("src", currentTrade["to"].logoURI);
   $("#to-token-symbol").text(currentTrade["to"].symbol);
+}
+
+function renderLoginSection(login) {
+  $("#swap-button").attr("disabled", !login);
+  $('#login_button').css('display', login ? 'none' : 'block');
+  $('#logout_button').css('display', !login ? 'none' : 'block');
 }
 
 function openModal(side) {
@@ -104,11 +154,15 @@ function closeModal() {
 }
 
 $(function () {
+  renderLoginSection(false);
+
   init();
 
   $("#login_button").on("click", login);
+  $('#logout_button').on('click', logout);
   $("#from-token-select").on("click", () => openModal("from"));
   $("#to-token-select").on("click", () => openModal("to"));
 
   $("#from_amount").on("blur", getQuote);
+  $("#swap-button").on("click", trySwap);
 });

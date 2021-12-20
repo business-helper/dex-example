@@ -30,7 +30,10 @@
 
       </ul>
       <form class="form-inline my-2 my-lg-0">
-        <button id="login_button" class="btn btn-outline-primary my-2 my-sm-0" type="submit">Sign in with
+        <button id="login_button" class="btn btn-outline-primary my-2 my-sm-0" type="button">Sign in with
+          metamask</button>
+
+        <button id="logout_button" class="btn btn-outline-secondary my-2 my-sm-0" type="button">Logout from
           metamask</button>
       </form>
     </div>
@@ -44,7 +47,7 @@
           <div class="swapbox">
             <div class="swapbox-select token-select" id="from-token-select">
               <image id="from-token-image">
-              <span id="from-token-symbol"></span>
+                <span id="from-token-symbol"></span>
             </div>
             <div class="swapbox-select">
               <input class="number form-control" placeholder="amount" id="from_amount" />
@@ -53,13 +56,14 @@
           <div class="swapbox">
             <div class="swapbox-select token-select" id="to-token-select">
               <image id="to-token-image">
-              <span id="to-token-symbol"></span>
+                <span id="to-token-symbol"></span>
             </div>
             <div class="swapbox-select">
               <input class="number form-control" placeholder="amount" id="to_amount" />
             </div>
           </div>
-          <button class="btn btn-large btn-primary btn-block" id="swap-button">
+          <div class="mb-3">Estimated Gas: <span id='gas-estimate'></span></div>
+          <button disabled class="btn btn-large btn-primary btn-block" id="swap-button">
             Swap
           </button>
         </div>
